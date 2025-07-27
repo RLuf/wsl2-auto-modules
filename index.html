@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Interativo para Módulos de Kernel WSL2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Teal -->
+    <!-- Application Structure Plan: A single-page application with a sticky side navigation bar for easy access to thematic sections (Setup, Development, Deployment, Reference). This task-oriented structure breaks down the complex process into manageable steps, improving usability over a linear document. Key interactions include a visual process flowchart, interactive code blocks with copy functionality, and a comparative chart to aid understanding. The user flow is designed to guide the user from environment setup to final deployment and troubleshooting. -->
+    <!-- Visualization & Content Choices: 
+        - Process Flow (Inform/Organize): An HTML/CSS diagram to visualize the end-to-end process. Interaction: Clickable nodes scroll to relevant sections. Justification: Provides a high-level overview and quick navigation.
+        - Code Blocks (Instruct): Presented in styled <pre> tags with copy buttons. Interaction: JS-powered copy-to-clipboard. Justification: Reduces user error and speeds up the process.
+        - Comparison Chart (Compare): A Chart.js Bar Chart comparing Manual vs. DKMS deployment on 'Effort' and 'Persistence' axes. Interaction: Tooltips on hover. Justification: Visually communicates the trade-offs between the two methods.
+        - Accordions (Organize/Reference): Used for Troubleshooting/FAQ section. Interaction: Click to expand/collapse. Justification: Keeps the UI clean and scannable.
+        - All visualizations and interactions are implemented using HTML/CSS/JS and Chart.js (Canvas), adhering to the NO SVG/Mermaid constraint. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div class="flex flex-col md:flex-row">
+        <!-- Sticky Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-white md:h-screen md:sticky top-0 p-4 md:p-6 border-b md:border-b-0 md:border-r border-slate-200">
+            <h1 class="text-xl font-bold text-teal-700 mb-6">Guia WSL2</h1>
+            <nav id="main-nav">
+                <ul class="space-y-2">
+                    <li><a href="#introducao" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">Introdução</a></li>
+                    <li><a href="#fluxo" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">Fluxo do Processo</a></li>
+                    <li><a href="#setup" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">1. Setup do Ambiente</a></li>
+                    <li><a href="#desenvolvimento" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">2. Desenvolvimento</a></li>
+                    <li><a href="#implantacao" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">3. Implantação e Teste</a></li>
+                    <li><a href="#referencia" class="nav-link block font-medium text-slate-600 hover:text-teal-600 transition-colors duration-200">4. Referência Rápida</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            <section id="introducao" class="mb-16">
+                <h2 class="text-4xl font-bold text-slate-900 mb-4">Construtor de Módulos de Kernel para WSL2</h2>
+                <p class="text-lg text-slate-600 max-w-3xl">
+                    Este guia interativo simplifica o processo de compilação de módulos de kernel personalizados para o Windows Subsystem for Linux 2 (WSL2). Navegue pelas etapas para configurar seu ambiente, desenvolver seu código e implantar seu módulo com confiança.
+                </p>
+            </section>
+
+            <section id="fluxo" class="mb-16">
+                <h3 class="text-2xl font-bold text-slate-900 mb-6">Fluxo do Processo</h3>
+                <div class="p-4 bg-white rounded-lg shadow-sm">
+                    <p class="text-slate-600 mb-6">
+                        Construir um módulo de kernel para WSL2 segue um processo específico. A principal diferença de um ambiente Linux padrão é a necessidade de obter e preparar manualmente o código-fonte do kernel da Microsoft. O fluxograma abaixo visualiza as etapas principais. Clique em qualquer etapa para navegar até a seção detalhada.
+                    </p>
+                    <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 text-center">
+                        <div class="flex-1 flow-step" data-target="#setup">
+                            <div class="p-4 bg-teal-50 border-2 border-teal-200 rounded-lg cursor-pointer hover:bg-teal-100 transition">
+                                <span class="text-4xl">🛠️</span>
+                                <h4 class="font-bold text-teal-800 mt-2">Setup</h4>
+                                <p class="text-sm text-teal-700">Instalar ferramentas e preparar o kernel.</p>
+                            </div>
+                        </div>
+                        <div class="text-2xl text-slate-400 font-mono">&rarr;</div>
+                        <div class="flex-1 flow-step" data-target="#desenvolvimento">
+                            <div class="p-4 bg-teal-50 border-2 border-teal-200 rounded-lg cursor-pointer hover:bg-teal-100 transition">
+                                <span class="text-4xl">💻</span>
+                                <h4 class="font-bold text-teal-800 mt-2">Desenvolver</h4>
+                                <p class="text-sm text-teal-700">Escrever o código C e o Makefile.</p>
+                            </div>
+                        </div>
+                        <div class="text-2xl text-slate-400 font-mono">&rarr;</div>
+                        <div class="flex-1 flow-step" data-target="#implantacao">
+                            <div class="p-4 bg-teal-50 border-2 border-teal-200 rounded-lg cursor-pointer hover:bg-teal-100 transition">
+                                <span class="text-4xl">🚀</span>
+                                <h4 class="font-bold text-teal-800 mt-2">Implantar</h4>
+                                <p class="text-sm text-teal-700">Compilar, testar e usar DKMS.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="setup" class="mb-16">
+                <h3 class="text-3xl font-bold text-slate-900 mb-2">1. Setup do Ambiente</h3>
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    A base para o desenvolvimento de módulos é um ambiente de construção corretamente configurado. Isso envolve instalar as ferramentas necessárias e, crucialmente para o WSL2, obter e preparar o código-fonte do kernel da Microsoft, já que os cabeçalhos padrão não estão disponíveis via `apt`.
+                </p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">1.1 Instalar Pré-requisitos</h4>
+                        <p class="text-slate-600 mb-4">Execute este comando para instalar todas as ferramentas de construção essenciais.</p>
+                        <div class="code-block bg-slate-800 text-white p-4 rounded-lg relative">
+                            <pre><code class="language-bash">sudo apt update
+sudo apt install -y build-essential flex bison dwarves libssl-dev libelf-dev libncurses-dev git bc cpio qemu-utils dkms</code></pre>
+                            <button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">1.2 Preparar Código-Fonte do Kernel</h4>
+                        <p class="text-slate-600 mb-4">Clone o repositório do kernel WSL2, faça checkout da tag correta e prepare-o para a compilação de módulos.</p>
+                        <div class="code-block bg-slate-800 text-white p-4 rounded-lg relative">
+                            <pre><code class="language-bash"># Clone o repositório
+git clone https://github.com/microsoft/WSL2-Linux-Kernel.git
+cd WSL2-Linux-Kernel
+
+# Faça checkout da tag que corresponde à sua versão (uname -r)
+# Exemplo para 6.6.87.2-microsoft-standard-WSL2:
+git checkout linux-msft-wsl-6.6.87.2
+
+# Copie a configuração do kernel em execução
+zcat /proc/config.gz > .config
+
+# Prepare a árvore de fontes para compilação de módulos
+make prepare modules_prepare -j$(nproc)</code></pre>
+                            <button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="desenvolvimento" class="mb-16">
+                <h3 class="text-3xl font-bold text-slate-900 mb-2">2. Desenvolvimento do Módulo</h3>
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    Agora, vamos criar um módulo "Hello World" simples. Esta seção inclui o código-fonte C e o Makefile necessário. O ponto mais importante aqui é que o Makefile deve apontar para o diretório do código-fonte do kernel que você preparou na etapa anterior, não para o caminho padrão do sistema.
+                </p>
+                <div class="mb-4">
+                    <label for="moduleNameInput" class="block text-sm font-medium text-slate-700 mb-1">Nome do Módulo:</label>
+                    <input type="text" id="moduleNameInput" value="hello-wsl2" class="w-full md:w-1/3 p-2 border border-slate-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">2.1 Código do Módulo (<span id="cFileName">hello-wsl2.c</span>)</h4>
+                        <div class="code-block bg-slate-800 text-white p-4 rounded-lg relative h-96 overflow-auto">
+                            <pre><code id="cCode" class="language-c">/*
+ * hello-wsl2.c - Módulo "Hello World" para WSL2
+ */
+#include &lt;linux/module.h&gt;
+#include &lt;linux/printk.h&gt;
+
+int init_module(void)
+{
+    pr_info("Olá mundo do módulo de kernel WSL2!\n");
+    return 0;
+}
+
+void cleanup_module(void)
+{
+    pr_info("Adeus mundo do módulo de kernel WSL2.\n");
+}
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Seu Nome");
+MODULE_DESCRIPTION("Um módulo hello world simples para WSL2.");
+MODULE_VERSION("1.0");
+</code></pre>
+                            <button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">2.2 Makefile</h4>
+                         <div class="code-block bg-slate-800 text-white p-4 rounded-lg relative h-96 overflow-auto">
+                            <pre><code id="makefileCode" class="language-makefile"># Caminho para o código-fonte do kernel preparado
+# Altere se você clonou em outro lugar
+KERNEL_SRC := $(HOME)/src/kernel/WSL2-Linux-Kernel
+
+obj-m += hello-wsl2.o
+
+all:
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules
+
+clean:
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) clean
+</code></pre>
+                            <button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="implantacao" class="mb-16">
+                <h3 class="text-3xl font-bold text-slate-900 mb-2">3. Implantação e Teste</h3>
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    Depois de escrever o código, é hora de compilar e implantar. Você pode carregar o módulo manualmente para um teste rápido, mas para uso a longo prazo, a integração com o DKMS é essencial. O DKMS garante que seu módulo seja automaticamente recompilado e reinstalado sempre que o kernel do WSL2 for atualizado.
+                </p>
+                
+                <div class="mb-8">
+                    <h4 class="font-bold text-xl mb-4 text-slate-800">Comparação: Manual vs. DKMS</h4>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                       <div class="chart-container">
+                           <canvas id="deploymentChart"></canvas>
+                       </div>
+                    </div>
+                </div>
+
+                <div id="tabs" class="bg-white rounded-lg shadow-sm">
+                    <div class="border-b border-slate-200">
+                        <nav class="flex space-x-4 p-4" aria-label="Tabs">
+                            <button class="tab-btn active font-medium text-teal-600 border-b-2 border-teal-600 px-3 py-2" data-target="manual">Implantação Manual</button>
+                            <button class="tab-btn font-medium text-slate-500 hover:text-slate-700 px-3 py-2" data-target="dkms">Integração com DKMS</button>
+                        </nav>
+                    </div>
+                    <div id="manual" class="tab-content p-6">
+                        <h4 class="font-bold text-lg mb-4">Passos para Carregamento Manual</h4>
+                        <ol class="list-decimal list-inside space-y-4 text-slate-600">
+                            <li>
+                                <strong>Compilar o módulo:</strong> No diretório do seu módulo, execute `make`.
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code>make</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                            <li>
+                                <strong>Carregar o módulo:</strong> Use `insmod` para inserir o módulo no kernel.
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="insmodCode">sudo insmod hello-wsl2.ko</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                             <li>
+                                <strong>Verificar:</strong> Use `lsmod` para ver se o módulo está carregado e `dmesg` para ver a mensagem de log.
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="verifyCode">lsmod | grep hello_wsl2
+dmesg | tail</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                            <li>
+                                <strong>Remover o módulo:</strong> Use `rmmod` para descarregar o módulo.
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="rmmodCode">sudo rmmod hello_wsl2</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                        </ol>
+                    </div>
+                    <div id="dkms" class="tab-content p-6 hidden">
+                        <h4 class="font-bold text-lg mb-4">Passos para Integração com DKMS</h4>
+                        <ol class="list-decimal list-inside space-y-4 text-slate-600">
+                            <li>
+                                <strong>Criar `dkms.conf`:</strong> No diretório do seu módulo, crie este arquivo.
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="dkmsConfCode">PACKAGE_NAME="hello-wsl2"
+PACKAGE_VERSION="1.0"
+BUILT_MODULE_NAME="hello-wsl2"
+DEST_MODULE_LOCATION="/kernel/drivers/misc"
+AUTOINSTALL="yes"
+MAKE="make -C $(HOME)/src/kernel/WSL2-Linux-Kernel M=${PWD}"
+CLEAN="make -C $(HOME)/src/kernel/WSL2-Linux-Kernel M=${PWD} clean"</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                            <li>
+                                <strong>Copiar fontes para `/usr/src`:</strong>
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="dkmsCopyCode">sudo cp -R . /usr/src/hello-wsl2-1.0</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                            <li>
+                                <strong>Adicionar, construir e instalar com DKMS:</strong>
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="dkmsCommandsCode">sudo dkms add -m hello-wsl2 -v 1.0
+sudo dkms build -m hello-wsl2 -v 1.0
+sudo dkms install -m hello-wsl2 -v 1.0</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                            <li>
+                                <strong>Carregar na inicialização (opcional):</strong>
+                                <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code id="dkmsAutoloadCode">echo "hello-wsl2" | sudo tee -a /etc/modules-load.d/hello-wsl2.conf</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <section id="referencia" class="mb-16">
+                <h3 class="text-3xl font-bold text-slate-900 mb-2">4. Referência Rápida e Solução de Problemas</h3>
+                <p class="text-slate-600 mb-8 max-w-3xl">
+                    Esta seção contém soluções para os problemas mais comuns e tabelas de referência para os comandos e variáveis mais importantes.
+                </p>
+                <div class="space-y-4">
+                    <div class="accordion-item bg-white rounded-lg shadow-sm">
+                        <button class="accordion-header w-full text-left p-4 font-medium text-slate-800 flex justify-between items-center hover:bg-slate-50">
+                            <span>Erro: "kernel headers not found"</span>
+                            <span class="accordion-icon transform transition-transform">+</span>
+                        </button>
+                        <div class="accordion-content hidden p-4 border-t border-slate-200">
+                            <p class="text-slate-600"><strong>Causa:</strong> Este é o erro mais comum no WSL2. Ocorre porque os cabeçalhos do kernel da Microsoft não são distribuídos via `apt`. O sistema de compilação não consegue encontrar os arquivos necessários no caminho padrão `/lib/modules/.../build`.</p>
+                            <p class="text-slate-600 mt-2"><strong>Solução:</strong> A solução é seguir rigorosamente a <strong>Etapa 1.2</strong>: clonar o repositório `WSL2-Linux-Kernel`, fazer checkout da tag correta e executar `make prepare modules_prepare`. Em seguida, certifique-se de que a variável `KERNEL_SRC` no seu `Makefile` e no `dkms.conf` aponte para o caminho absoluto deste diretório clonado e preparado.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item bg-white rounded-lg shadow-sm">
+                        <button class="accordion-header w-full text-left p-4 font-medium text-slate-800 flex justify-between items-center hover:bg-slate-50">
+                            <span>Erro: Falha ao carregar o módulo ("Operation not permitted")</span>
+                            <span class="accordion-icon transform transition-transform">+</span>
+                        </button>
+                        <div class="accordion-content hidden p-4 border-t border-slate-200">
+                            <p class="text-slate-600"><strong>Causa:</strong> Isso pode indicar que o kernel está aplicando a verificação de assinatura de módulo, impedindo o carregamento de módulos não assinados.</p>
+                            <p class="text-slate-600 mt-2"><strong>Solução:</strong> Você pode desativar a verificação de assinatura adicionando uma linha de comando ao kernel do WSL2. Edite o arquivo `%UserProfile%\.wslconfig` no Windows (crie-o se não existir) e adicione o seguinte conteúdo. Depois, reinicie o WSL com `wsl --shutdown` no PowerShell.</p>
+                            <div class="code-block bg-slate-800 text-white p-2 rounded-md mt-2 relative"><pre><code>[wsl2]
+kernelCommandLine = module.sig_unenforce</code></pre><button class="copy-btn absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white text-xs px-2 py-1 rounded-md">Copiar</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Smooth scrolling for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Flow step navigation
+    document.querySelectorAll('.flow-step').forEach(step => {
+        step.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            document.querySelector(targetId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Copy to clipboard functionality
+    document.querySelectorAll('.copy-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const codeBlock = this.previousElementSibling;
+            const textToCopy = codeBlock.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = this.innerText;
+                this.innerText = 'Copiado!';
+                setTimeout(() => {
+                    this.innerText = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Falha ao copiar texto: ', err);
+            });
+        });
+    });
+    
+    // Dynamic module name update
+    const moduleNameInput = document.getElementById('moduleNameInput');
+    const cFileName = document.getElementById('cFileName');
+    const cCode = document.getElementById('cCode');
+    const makefileCode = document.getElementById('makefileCode');
+    const insmodCode = document.getElementById('insmodCode');
+    const verifyCode = document.getElementById('verifyCode');
+    const rmmodCode = document.getElementById('rmmodCode');
+    const dkmsConfCode = document.getElementById('dkmsConfCode');
+    const dkmsCopyCode = document.getElementById('dkmsCopyCode');
+    const dkmsCommandsCode = document.getElementById('dkmsCommandsCode');
+    const dkmsAutoloadCode = document.getElementById('dkmsAutoloadCode');
+
+    function updateModuleContent(name) {
+        if (!name) name = 'meu-modulo';
+        const nameUnderscore = name.replace(/-/g, '_');
+        
+        cFileName.innerText = `${name}.c`;
+        cCode.innerText = `/*
+ * ${name}.c - Módulo "Hello World" para WSL2
+ */
+#include <linux/module.h>
+#include <linux/printk.h>
+
+int init_module(void)
+{
+    pr_info("Olá mundo do módulo de kernel WSL2!\\n");
+    return 0;
+}
+
+void cleanup_module(void)
+{
+    pr_info("Adeus mundo do módulo de kernel WSL2.\\n");
+}
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Seu Nome");
+MODULE_DESCRIPTION("Um módulo hello world simples para WSL2.");
+MODULE_VERSION("1.0");`;
+        
+        makefileCode.innerText = `# Caminho para o código-fonte do kernel preparado
+# Altere se você clonou em outro lugar
+KERNEL_SRC := $(HOME)/src/kernel/WSL2-Linux-Kernel
+
+obj-m += ${name}.o
+
+all:
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules
+
+clean:
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) clean`;
+
+        insmodCode.innerText = `sudo insmod ${name}.ko`;
+        verifyCode.innerText = `lsmod | grep ${nameUnderscore}\ndmesg | tail`;
+        rmmodCode.innerText = `sudo rmmod ${nameUnderscore}`;
+        
+        dkmsConfCode.innerText = `PACKAGE_NAME="${name}"
+PACKAGE_VERSION="1.0"
+BUILT_MODULE_NAME="${name}"
+DEST_MODULE_LOCATION="/kernel/drivers/misc"
+AUTOINSTALL="yes"
+MAKE="make -C $(HOME)/src/kernel/WSL2-Linux-Kernel M=\${PWD}"
+CLEAN="make -C $(HOME)/src/kernel/WSL2-Linux-Kernel M=\${PWD} clean"`;
+        dkmsCopyCode.innerText = `sudo cp -R . /usr/src/${name}-1.0`;
+        dkmsCommandsCode.innerText = `sudo dkms add -m ${name} -v 1.0
+sudo dkms build -m ${name} -v 1.0
+sudo dkms install -m ${name} -v 1.0`;
+        dkmsAutoloadCode.innerText = `echo "${name}" | sudo tee -a /etc/modules-load.d/${name}.conf`;
+    }
+
+    moduleNameInput.addEventListener('input', (e) => {
+        updateModuleContent(e.target.value);
+    });
+
+    // Tabs functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'text-teal-600', 'border-teal-600');
+                btn.classList.add('text-slate-500', 'hover:text-slate-700');
+            });
+            button.classList.add('active', 'text-teal-600', 'border-teal-600');
+            button.classList.remove('text-slate-500', 'hover:text-slate-700');
+
+            tabContents.forEach(content => {
+                if (content.id === targetId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    // Accordion functionality
+    document.querySelectorAll('.accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.accordion-icon');
+            
+            content.classList.toggle('hidden');
+            if (content.classList.contains('hidden')) {
+                icon.classList.remove('rotate-45');
+            } else {
+                icon.classList.add('rotate-45');
+            }
+        });
+    });
+
+    // Chart.js Deployment Comparison Chart
+    const ctx = document.getElementById('deploymentChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Esforço de Setup', 'Persistência (Pós-Update)'],
+            datasets: [{
+                label: 'Implantação Manual',
+                data: [2, 1],
+                backgroundColor: 'rgba(56, 189, 248, 0.6)', // sky-400
+                borderColor: 'rgba(14, 165, 233, 1)', // sky-500
+                borderWidth: 1
+            }, {
+                label: 'Integração com DKMS',
+                data: [7, 9],
+                backgroundColor: 'rgba(20, 184, 166, 0.6)', // teal-500
+                borderColor: 'rgba(15, 118, 110, 1)', // teal-700
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 10,
+                    title: {
+                        display: true,
+                        text: 'Nível (1-10)'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Análise de Custo-Benefício: Implantação Manual vs. DKMS'
+                },
+                tooltip: {
+                    callbacks: {
+                        footer: function(tooltipItems) {
+                            let text = '';
+                            if (tooltipItems[0].dataset.label === 'Implantação Manual') {
+                                if (tooltipItems[0].label === 'Esforço de Setup') {
+                                    text = 'Rápido e simples para um teste único.';
+                                } else {
+                                    text = 'O módulo quebra a cada atualização do kernel.';
+                                }
+                            } else {
+                                if (tooltipItems[0].label === 'Esforço de Setup') {
+                                    text = 'Requer configuração inicial mais complexa.';
+                                } else {
+                                    text = 'O módulo é recompilado automaticamente.';
+                                }
+                            }
+                            return text;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+</body>
+</html>
